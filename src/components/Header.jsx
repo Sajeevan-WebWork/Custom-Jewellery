@@ -71,8 +71,8 @@ const Header = () => {
           >
             <Link to="/" onClick={() => setIsMobileMenuOpen(false)}>Home</Link>
             <Link to="/products" onClick={() => setIsMobileMenuOpen(false)}>Collection</Link>
-            <Link to="/about" onClick={() => setIsMobileMenuOpen(false)}>Our Story</Link>
-            <Link to="/contact" onClick={() => setIsMobileMenuOpen(false)}>Contact</Link>
+            {/* <Link to="/about" onClick={() => setIsMobileMenuOpen(false)}>Our Story</Link> */}
+            {/* <Link to="/contact" onClick={() => setIsMobileMenuOpen(false)}>Contact</Link> */}
           </motion.div>
         )}
       </AnimatePresence>

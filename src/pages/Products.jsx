@@ -174,7 +174,7 @@ const Products = () => {
                       {/* Quick Add */}
                       <button 
                         onClick={() => addToCart(product)}
-                        className="absolute bottom-4 left-4 right-4 bg-bg-primary text-white py-3 px-4 uppercase tracking-widest text-[10px] font-bold opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-500 hover:bg-accent-gold hover:text-bg-primary flex items-center justify-center space-x-2"
+                        className="absolute bottom-6 md:bottom-4 left-4 right-4 bg-bg-primary text-white py-3 px-4 uppercase tracking-widest text-[10px] font-bold md:opacity-0 md:translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-500 hover:bg-accent-gold hover:text-bg-primary flex items-center justify-center space-x-2"
                       >
                         <ShoppingBag size={14} />
                         <span>Add to Cart</span>

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, ShoppingBag, Plus, Minus, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { X, ShoppingBag, Plus, Minus, ArrowRight, CheckCircle2, ArrowLeft } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { formatWhatsAppMessage, getWhatsAppUrl } from '../utils/whatsapp';
 
@@ -68,7 +68,7 @@ const CartDrawer = () => {
                   </>
                 ) : (
                   <>
-                    <ArrowRight size={20} className="mr-3 text-accent-gold cursor-pointer" onClick={() => setStep('cart')} />
+                    <ArrowLeft size={20} className="mr-3 text-accent-gold cursor-pointer" onClick={() => setStep('cart')} />
                     Order Details
                   </>
                 )}

@@ -31,7 +31,7 @@ export const CartProvider = ({ children }) => {
       }
       return [...prevItems, { ...product, quantity: 1 }];
     });
-    setIsCartOpen(true);
+    // setIsCartOpen(true);
   };
 
   const removeFromCart = (productId) => {
