@@ -3,8 +3,19 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase";
-import { formatCurrency, formatDate, orderStatuses, type OrderStatus } from "@/lib/dashboard";
-import { Button, EmptyState, PageHeader, Panel, StatusBadge } from "@/components/dashboard/ui";
+import {
+  formatCurrency,
+  formatDate,
+  orderStatuses,
+  type OrderStatus,
+} from "@/lib/dashboard";
+import {
+  Button,
+  EmptyState,
+  PageHeader,
+  Panel,
+  StatusBadge,
+} from "@/components/dashboard/ui";
 import { ShoppingBag } from "lucide-react";
 
 type Order = {
@@ -19,6 +30,13 @@ type Order = {
 
 const filters: Array<"all" | OrderStatus> = ["all", ...orderStatuses];
 
+// Helper function to count products from product_name string
+function countProducts(productName: string | null): number {
+  if (!productName) return 0;
+  // Count items by splitting by comma and filtering empty strings
+  return productName.split(",").filter((item) => item.trim()).length;
+}
+
 export default function DashboardOrdersPage() {
   const supabase = useMemo(() => createClient(), []);
   const [orders, setOrders] = useState<Order[]>([]);
@@ -30,7 +48,9 @@ export default function DashboardOrdersPage() {
     const loadOrders = async () => {
       const { data, error: fetchError } = await supabase
         .from("orders")
-        .select("id, customer_name, customer_email, product_name, amount, status, created_at")
+        .select(
+          "id, customer_name, customer_email, product_name, amount, status, created_at",
+        )
         .order("created_at", { ascending: false });
 
       if (fetchError) setError(fetchError.message);
@@ -72,7 +92,9 @@ export default function DashboardOrdersPage() {
       {error ? <p className="text-sm text-rose-400">{error}</p> : null}
 
       {loading ? (
-        <Panel className="p-6 text-sm text-[var(--text-dim)]">Loading orders…</Panel>
+        <Panel className="p-6 text-sm text-[var(--text-dim)]">
+          Loading orders…
+        </Panel>
       ) : filteredOrders.length ? (
         <Panel className="overflow-hidden">
           <div className="overflow-x-auto">
@@ -81,7 +103,7 @@ export default function DashboardOrdersPage() {
                 <tr>
                   <th className="px-6 py-4 font-medium">Customer</th>
                   <th className="px-6 py-4 font-medium">Email</th>
-                  <th className="px-6 py-4 font-medium">Product</th>
+                  <th className="px-6 py-4 font-medium">Product Count</th>
                   <th className="px-6 py-4 font-medium">Amount</th>
                   <th className="px-6 py-4 font-medium">Status</th>
                   <th className="px-6 py-4 font-medium">Date</th>
@@ -91,14 +113,29 @@ export default function DashboardOrdersPage() {
               <tbody className="divide-y divide-[var(--border)]">
                 {filteredOrders.map((order) => (
                   <tr key={order.id} className="bg-[var(--surface-2)]/45">
-                    <td className="px-6 py-4 text-[var(--text)]">{order.customer_name}</td>
-                    <td className="px-6 py-4 text-[var(--text-dim)]">{order.customer_email}</td>
-                    <td className="px-6 py-4 text-[var(--text-dim)]">{order.product_name || "Custom order"}</td>
-                    <td className="px-6 py-4 text-[var(--gold)]">{formatCurrency(order.amount)}</td>
+                    <td className="px-6 py-4 text-[var(--text)]">
+                      {order.customer_name}
+                    </td>
+                    <td className="px-6 py-4 text-[var(--text-dim)]">
+                      {order.customer_email}
+                    </td>
+                    {/* <td className="px-6 py-4 text-[var(--text-dim)]">
+                      {order.product_name || "Custom order"}
+                    </td> */}
+                    <td className="px-6 py-4 text-[var(--text)]">
+                      <span className="inline-flex items-center justify-center rounded-full bg-[var(--gold)]/20 px-3 py-1 text-sm font-medium text-[var(--gold)]">
+                        {countProducts(order.product_name)}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-[var(--gold)]">
+                      {formatCurrency(order.amount)}
+                    </td>
                     <td className="px-6 py-4">
                       <StatusBadge status={order.status} />
                     </td>
-                    <td className="px-6 py-4 text-[var(--text-dim)]">{formatDate(order.created_at)}</td>
+                    <td className="px-6 py-4 text-[var(--text-dim)]">
+                      {formatDate(order.created_at)}
+                    </td>
                     <td className="px-6 py-4">
                       <Link href={`/dashboard/orders/${order.id}`}>
                         <Button variant="secondary">View</Button>
@@ -111,9 +148,12 @@ export default function DashboardOrdersPage() {
           </div>
         </Panel>
       ) : (
-        <EmptyState icon={ShoppingBag} title="No orders found" body="Orders matching this status filter will appear here." />
+        <EmptyState
+          icon={ShoppingBag}
+          title="No orders found"
+          body="Orders matching this status filter will appear here."
+        />
       )}
     </div>
   );
 }
-
