@@ -5,7 +5,13 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Gem, Pencil, Plus, Search, Trash2 } from "lucide-react";
 import { createClient } from "@/lib/supabase";
 import { extractStoragePath, formatCurrency } from "@/lib/dashboard";
-import { Button, EmptyState, Input, PageHeader, Panel } from "@/components/dashboard/ui";
+import {
+  Button,
+  EmptyState,
+  Input,
+  PageHeader,
+  Panel,
+} from "@/components/dashboard/ui";
 
 type ProductRow = {
   id: string;
@@ -38,10 +44,14 @@ export default function DashboardProductsPage() {
     if (fetchError) {
       setError(fetchError.message);
     } else {
-      const normalized = ((data ?? []) as unknown as RawProductRow[]).map((product) => ({
-        ...product,
-        categories: Array.isArray(product.categories) ? product.categories[0] ?? null : product.categories,
-      }));
+      const normalized = ((data ?? []) as unknown as RawProductRow[]).map(
+        (product) => ({
+          ...product,
+          categories: Array.isArray(product.categories)
+            ? (product.categories[0] ?? null)
+            : product.categories,
+        }),
+      );
       setProducts(normalized);
       setError("");
     }
@@ -66,7 +76,9 @@ export default function DashboardProductsPage() {
   }, [products, search]);
 
   const handleDelete = async (product: ProductRow) => {
-    const confirmed = window.confirm(`Delete ${product.name}? This action cannot be undone.`);
+    const confirmed = window.confirm(
+      `Delete ${product.name}? This action cannot be undone.`,
+    );
     if (!confirmed) return;
 
     setDeletingId(product.id);
@@ -77,16 +89,24 @@ export default function DashboardProductsPage() {
         .filter((value): value is string => Boolean(value));
 
       if (paths.length) {
-        const { error: storageError } = await supabase.storage.from("products").remove(paths);
+        const { error: storageError } = await supabase.storage
+          .from("products")
+          .remove(paths);
         if (storageError) throw storageError;
       }
 
-      const { error: deleteError } = await supabase.from("products").delete().eq("id", product.id);
+      const { error: deleteError } = await supabase
+        .from("products")
+        .delete()
+        .eq("id", product.id);
       if (deleteError) throw deleteError;
 
       await loadProducts();
     } catch (deleteError) {
-      const message = deleteError instanceof Error ? deleteError.message : "Unable to delete product.";
+      const message =
+        deleteError instanceof Error
+          ? deleteError.message
+          : "Unable to delete product.";
       setError(message);
     } finally {
       setDeletingId(null);
@@ -123,74 +143,160 @@ export default function DashboardProductsPage() {
       {error ? <p className="text-sm text-rose-400">{error}</p> : null}
 
       {loading ? (
-        <Panel className="p-6 text-sm text-[var(--text-dim)]">Loading products…</Panel>
-      ) : filtered.length ? (
-        <Panel className="overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-[var(--border)] text-left text-sm">
-              <thead className="bg-[var(--surface)] text-[var(--text-muted)]">
-                <tr>
-                  <th className="px-6 py-4 font-medium">Image</th>
-                  <th className="px-6 py-4 font-medium">Name</th>
-                  <th className="px-6 py-4 font-medium">Category</th>
-                  <th className="px-6 py-4 font-medium">Price</th>
-                  <th className="px-6 py-4 font-medium">Stock</th>
-                  <th className="px-6 py-4 font-medium">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[var(--border)]">
-                {filtered.map((product) => (
-                  <tr key={product.id} className="bg-[var(--surface-2)]/45">
-                    <td className="px-6 py-4">
-                      {product.image_urls?.[0] ? (
-                        <img
-                          src={product.image_urls[0]}
-                          alt={product.name}
-                          className="h-14 w-14 rounded-2xl object-cover"
-                        />
-                      ) : (
-                        <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-[var(--border)] bg-[var(--surface)]">
-                          <Gem className="h-5 w-5 text-[var(--gold)]" />
-                        </div>
-                      )}
-                    </td>
-                    <td className="px-6 py-4 text-[var(--text)]">{product.name}</td>
-                    <td className="px-6 py-4 text-[var(--text-dim)]">{product.categories?.name || "Unassigned"}</td>
-                    <td className="px-6 py-4 text-[var(--gold)]">{formatCurrency(product.price)}</td>
-                    <td className="px-6 py-4">
-                      <span
-                        className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${
-                          product.stock ? "bg-emerald-500/10 text-emerald-300" : "bg-rose-500/10 text-rose-300"
-                        }`}
-                      >
-                        {product.stock ? "In Stock" : "Out of Stock"}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-2">
-                        <Link href={`/dashboard/products/${product.id}`}>
-                          <Button variant="secondary" className="gap-2">
-                            <Pencil className="h-4 w-4" />
-                            Edit
-                          </Button>
-                        </Link>
-                        <Button
-                          variant="ghost"
-                          className="gap-2 text-rose-300 hover:text-rose-200"
-                          onClick={() => handleDelete(product)}
-                          disabled={deletingId === product.id}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                          {deletingId === product.id ? "Deleting…" : "Delete"}
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+        <Panel className="p-6 text-sm text-[var(--text-dim)]">
+          Loading products…
         </Panel>
+      ) : filtered.length ? (
+        <>
+          {/* Desktop Table View */}
+          <div className="hidden md:block">
+            <Panel className="overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-[var(--border)] text-left text-sm">
+                  <thead className="bg-[var(--surface)] text-[var(--text-muted)]">
+                    <tr>
+                      <th className="px-6 py-4 font-medium">Image</th>
+                      <th className="px-6 py-4 font-medium">Name</th>
+                      <th className="px-6 py-4 font-medium">Category</th>
+                      <th className="px-6 py-4 font-medium">Price</th>
+                      <th className="px-6 py-4 font-medium">Stock</th>
+                      <th className="px-6 py-4 font-medium">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[var(--border)]">
+                    {filtered.map((product) => (
+                      <tr key={product.id} className="bg-[var(--surface-2)]/45">
+                        <td className="px-6 py-4">
+                          {product.image_urls?.[0] ? (
+                            <img
+                              src={product.image_urls[0]}
+                              alt={product.name}
+                              className="h-14 w-14 rounded-2xl object-cover"
+                            />
+                          ) : (
+                            <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-[var(--border)] bg-[var(--surface)]">
+                              <Gem className="h-5 w-5 text-[var(--gold)]" />
+                            </div>
+                          )}
+                        </td>
+                        <td className="px-6 py-4 text-[var(--text)]">
+                          {product.name}
+                        </td>
+                        <td className="px-6 py-4 text-[var(--text-dim)]">
+                          {product.categories?.name || "Unassigned"}
+                        </td>
+                        <td className="px-6 py-4 text-[var(--gold)]">
+                          {formatCurrency(product.price)}
+                        </td>
+                        <td className="px-6 py-4">
+                          <span
+                            className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${
+                              product.stock
+                                ? "bg-emerald-500/10 text-emerald-300"
+                                : "bg-rose-500/10 text-rose-300"
+                            }`}
+                          >
+                            {product.stock ? "In Stock" : "Out of Stock"}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-2">
+                            <Link href={`/dashboard/products/${product.id}`}>
+                              <Button variant="secondary" className="gap-2">
+                                <Pencil className="h-4 w-4" />
+                                Edit
+                              </Button>
+                            </Link>
+                            <Button
+                              variant="ghost"
+                              className="gap-2 text-rose-300 hover:text-rose-200"
+                              onClick={() => handleDelete(product)}
+                              disabled={deletingId === product.id}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                              {deletingId === product.id
+                                ? "Deleting…"
+                                : "Delete"}
+                            </Button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </Panel>
+          </div>
+
+          {/* Mobile Card View */}
+          <div className="grid gap-4 md:hidden">
+            {filtered.map((product) => (
+              <Panel key={product.id} className="overflow-hidden">
+                <div className="space-y-3">
+                  {/* Product Image */}
+                  <div className="flex items-center gap-3">
+                    {product.image_urls?.[0] ? (
+                      <img
+                        src={product.image_urls[0]}
+                        alt={product.name}
+                        className="h-20 w-20 rounded-2xl object-cover"
+                      />
+                    ) : (
+                      <div className="flex h-20 w-20 items-center justify-center rounded-2xl border border-[var(--border)] bg-[var(--surface)]">
+                        <Gem className="h-8 w-8 text-[var(--gold)]" />
+                      </div>
+                    )}
+                    <div className="flex-1">
+                      <h3 className="font-medium text-[var(--text)]">
+                        {product.name}
+                      </h3>
+                      <p className="text-xs text-[var(--text-dim)]">
+                        {product.categories?.name || "Unassigned"}
+                      </p>
+                      <p className="mt-1 text-sm font-semibold text-[var(--gold)]">
+                        {formatCurrency(product.price)}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Stock Status */}
+                  <div className="border-t border-[var(--border)] pt-2">
+                    <span
+                      className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${
+                        product.stock
+                          ? "bg-emerald-500/10 text-emerald-300"
+                          : "bg-rose-500/10 text-rose-300"
+                      }`}
+                    >
+                      {product.stock ? "In Stock" : "Out of Stock"}
+                    </span>
+                  </div>
+
+                  {/* Actions */}
+                  <div className="flex gap-2 border-t border-[var(--border)] pt-3">
+                    <Link
+                      href={`/dashboard/products/${product.id}`}
+                      className="flex-1"
+                    >
+                      <Button variant="secondary" className="w-full gap-2">
+                        <Pencil className="h-4 w-4" />
+                        Edit
+                      </Button>
+                    </Link>
+                    <Button
+                      variant="ghost"
+                      className="gap-2 text-rose-300 hover:text-rose-200"
+                      onClick={() => handleDelete(product)}
+                      disabled={deletingId === product.id}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              </Panel>
+            ))}
+          </div>
+        </>
       ) : (
         <EmptyState
           icon={Gem}

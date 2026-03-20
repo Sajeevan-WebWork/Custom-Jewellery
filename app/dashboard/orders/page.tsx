@@ -96,57 +96,109 @@ export default function DashboardOrdersPage() {
           Loading orders…
         </Panel>
       ) : filteredOrders.length ? (
-        <Panel className="overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-[var(--border)] text-left text-sm">
-              <thead className="bg-[var(--surface)] text-[var(--text-muted)]">
-                <tr>
-                  <th className="px-6 py-4 font-medium">Customer</th>
-                  <th className="px-6 py-4 font-medium">Email</th>
-                  <th className="px-6 py-4 font-medium">Product Count</th>
-                  <th className="px-6 py-4 font-medium">Amount</th>
-                  <th className="px-6 py-4 font-medium">Status</th>
-                  <th className="px-6 py-4 font-medium">Date</th>
-                  <th className="px-6 py-4 font-medium">View</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[var(--border)]">
-                {filteredOrders.map((order) => (
-                  <tr key={order.id} className="bg-[var(--surface-2)]/45">
-                    <td className="px-6 py-4 text-[var(--text)]">
-                      {order.customer_name}
-                    </td>
-                    <td className="px-6 py-4 text-[var(--text-dim)]">
-                      {order.customer_email}
-                    </td>
-                    {/* <td className="px-6 py-4 text-[var(--text-dim)]">
-                      {order.product_name || "Custom order"}
-                    </td> */}
-                    <td className="px-6 py-4 text-[var(--text)]">
-                      <span className="inline-flex items-center justify-center rounded-full bg-[var(--gold)]/20 px-3 py-1 text-sm font-medium text-[var(--gold)]">
-                        {countProducts(order.product_name)}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-[var(--gold)]">
-                      {formatCurrency(order.amount)}
-                    </td>
-                    <td className="px-6 py-4">
-                      <StatusBadge status={order.status} />
-                    </td>
-                    <td className="px-6 py-4 text-[var(--text-dim)]">
-                      {formatDate(order.created_at)}
-                    </td>
-                    <td className="px-6 py-4">
-                      <Link href={`/dashboard/orders/${order.id}`}>
-                        <Button variant="secondary">View</Button>
-                      </Link>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+        <>
+          {/* Desktop Table View */}
+          <div className="hidden md:block">
+            <Panel className="overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-[var(--border)] text-left text-sm">
+                  <thead className="bg-[var(--surface)] text-[var(--text-white)]">
+                    <tr>
+                      <th className="px-6 py-4 font-medium">Customer</th>
+                      <th className="px-6 py-4 font-medium">Email</th>
+                      <th className="px-6 py-4 font-medium">Product Count</th>
+                      <th className="px-6 py-4 font-medium">Amount</th>
+                      <th className="px-6 py-4 font-medium">Status</th>
+                      <th className="px-6 py-4 font-medium">Date</th>
+                      <th className="px-6 py-4 font-medium">View</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[var(--border)]">
+                    {filteredOrders.map((order) => (
+                      <tr key={order.id} className="bg-[var(--surface-2)]/45">
+                        <td className="px-6 py-4 text-[var(--text)]">
+                          {order.customer_name}
+                        </td>
+                        <td className="px-6 py-4 text-[var(--text-dim)]">
+                          {order.customer_email}
+                        </td>
+                        <td className="px-6 py-4 text-[var(--text)]">
+                          <span className="inline-flex items-center justify-center rounded-full bg-[var(--gold)]/20 px-3 py-1 text-sm font-medium text-[var(--gold)]">
+                            {countProducts(order.product_name)}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 text-[var(--gold)]">
+                          {formatCurrency(order.amount)}
+                        </td>
+                        <td className="px-6 py-4">
+                          <StatusBadge status={order.status} />
+                        </td>
+                        <td className="px-6 py-4 text-[var(--text-dim)]">
+                          {formatDate(order.created_at)}
+                        </td>
+                        <td className="px-6 py-4">
+                          <Link href={`/dashboard/orders/${order.id}`}>
+                            <Button variant="secondary">View</Button>
+                          </Link>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </Panel>
           </div>
-        </Panel>
+
+          {/* Mobile Card View */}
+          <div className="grid gap-4 md:hidden">
+            {filteredOrders.map((order) => (
+              <Panel key={order.id} className="p-4">
+                <div className="space-y-3">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <p className="font-medium text-[var(--text)]">
+                        {order.customer_name}
+                      </p>
+                      <p className="text-xs text-[var(--text-dim)]">
+                        {order.customer_email}
+                      </p>
+                    </div>
+                    <StatusBadge status={order.status} />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3 border-t border-[var(--border)] pt-3">
+                    <div>
+                      <p className="text-xs text-[var(--text-muted)] uppercase tracking-wide">
+                        Items
+                      </p>
+                      <p className="mt-1 rounded-full bg-[var(--gold)]/20 px-2 py-1 text-center text-sm font-medium text-[var(--gold)]">
+                        {countProducts(order.product_name)}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-[var(--text-muted)] uppercase tracking-wide">
+                        Amount
+                      </p>
+                      <p className="mt-1 text-sm font-medium text-[var(--gold)]">
+                        {formatCurrency(order.amount)}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="border-t border-[var(--border)] pt-3 text-xs text-[var(--text-muted)]">
+                    {formatDate(order.created_at)}
+                  </div>
+
+                  <Link href={`/dashboard/orders/${order.id}`}>
+                    <Button variant="secondary" className="w-full">
+                      View Order
+                    </Button>
+                  </Link>
+                </div>
+              </Panel>
+            ))}
+          </div>
+        </>
       ) : (
         <EmptyState
           icon={ShoppingBag}

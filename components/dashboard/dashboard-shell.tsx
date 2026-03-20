@@ -49,21 +49,27 @@ export function DashboardShell({ children }: { children: ReactNode }) {
       <div className="flex min-h-screen items-center justify-center bg-[var(--bg)] px-6">
         <div className="text-center">
           <div className="mx-auto h-12 w-12 animate-spin rounded-full border-2 border-[var(--border)] border-t-[var(--gold)]" />
-          <p className="mt-4 text-sm text-[var(--text-dim)]">Loading secure dashboard…</p>
+          <p className="mt-4 text-sm text-[var(--text-dim)]">
+            Loading secure dashboard…
+          </p>
         </div>
       </div>
     );
   }
 
   const sidebar = (
-    <aside className="flex h-full w-64 flex-col border-r border-[var(--border)] bg-[var(--surface)]">
+    <aside className="flex h-full w-64 flex-col border-r border-[var(--border)] bg-[var(--surface)] md:w-56 sm:w-full">
       <div className="flex items-center gap-3 border-b border-[var(--border)] px-6 py-6">
         <div className="rounded-2xl bg-[var(--surface-2)] p-3">
           <Gem className="h-6 w-6 text-[var(--gold)]" />
         </div>
         <div>
-          <p className="font-[family-name:var(--font-display)] text-3xl text-[var(--gold)]">Jewellery Studio</p>
-          <p className="text-xs uppercase tracking-[0.24em] text-[var(--text-muted)]">Admin Console</p>
+          <p className="font-[family-name:var(--font-display)] text-3xl text-[var(--gold)]">
+            Jewellery Studio
+          </p>
+          <p className="text-xs uppercase tracking-[0.24em] text-[var(--text-muted)]">
+            Admin Console
+          </p>
         </div>
       </div>
 
@@ -80,7 +86,7 @@ export function DashboardShell({ children }: { children: ReactNode }) {
                   "flex items-center gap-3 rounded-r-2xl border-l-2 px-4 py-3 text-sm transition",
                   active
                     ? "border-[var(--gold)] bg-[rgba(201,169,110,0.08)] text-[var(--gold)]"
-                    : "border-transparent text-[var(--text-dim)] hover:bg-[var(--surface-2)] hover:text-[var(--text)]"
+                    : "border-transparent text-[var(--text-dim)] hover:bg-[var(--surface-2)] hover:text-[var(--text)]",
                 )}
               >
                 <Icon className="h-5 w-5" />
@@ -129,7 +135,9 @@ export function DashboardShell({ children }: { children: ReactNode }) {
           >
             <Menu className="h-5 w-5 text-[var(--text)]" />
           </button>
-          <p className="font-[family-name:var(--font-display)] text-3xl text-[var(--gold)]">Jewellery Studio</p>
+          <p className="font-[family-name:var(--font-display)] text-3xl text-[var(--gold)]">
+            Jewellery Studio
+          </p>
           <button
             className="rounded-full border border-transparent p-2 text-[var(--text-dim)]"
             onClick={() => setOpen(false)}

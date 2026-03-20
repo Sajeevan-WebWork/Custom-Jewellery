@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
+import Image from "next/image";
 
 export function HeroSection() {
   return (
@@ -13,6 +14,13 @@ export function HeroSection() {
           alt="Luxury Jewellery"
           className="h-full w-full scale-105 object-cover opacity-60"
         /> */}
+        <Image
+          src="/images/hero-background.jpg"
+          fill
+          alt="Luxury Jewellery"
+          className="h-full w-full object-cover opacity-90 object-left"
+        />
+
         <div className="absolute inset-0 bg-gradient-to-r from-bg-primary via-bg-primary/40 to-transparent" />
         <div className="absolute inset-0 bg-gradient-to-t from-bg-primary via-transparent to-transparent opacity-50" />
       </div>

@@ -22,8 +22,8 @@
   --surface-2: #1a1918;
   --border: #242320;
   --text: #ede8df;
-  --text-dim: #9a9488;
-  --text-muted: #524f49;
+  --text-dim: #dcd5c8;
+  --text-muted: #cdcac5;
   --danger: #ef4444;
   --success: #22c55e;
   --radius: 1.25rem;
@@ -71,6 +71,7 @@ input,
 select,
 textarea {
   font: inherit;
+  cursor: pointer;
 }
 
 h1,
