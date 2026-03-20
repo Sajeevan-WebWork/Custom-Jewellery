@@ -1,15 +1,14 @@
 "use client";
 
 import { Gem, LayoutDashboard, ShoppingBag, Tag } from "lucide-react";
-import Link from "next/link";
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase";
+import { DashboardOverviewSkeleton } from "./loading";
 import {
   Panel,
   PageHeader,
   StatCard,
   StatusBadge,
-  Button,
 } from "@/components/dashboard/ui";
 import { formatCurrency, type OrderStatus, formatDate } from "@/lib/dashboard";
 
@@ -31,7 +30,6 @@ type DashboardData = {
 };
 
 export default function DashboardOverviewPage() {
-  const supabase = createClient();
   const [data, setData] = useState<DashboardData>({
     productsCount: 0,
     ordersCount: 0,
@@ -43,6 +41,7 @@ export default function DashboardOverviewPage() {
 
   useEffect(() => {
     const loadData = async () => {
+      const supabase = createClient();
       const [
         productsCount,
         ordersCount,
@@ -88,14 +87,7 @@ export default function DashboardOverviewPage() {
   const recentOrders = data.recentOrders;
 
   if (loading) {
-    return (
-      <div
-        role="status"
-        className="flex items-center justify-center min-h-screen"
-      >
-        <span className="sr-only text-white">Loading...</span>
-      </div>
-    );
+    return <DashboardOverviewSkeleton />;
   }
 
   return (
