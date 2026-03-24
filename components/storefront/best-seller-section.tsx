@@ -136,7 +136,7 @@ export function BestSellerSection() {
                       <span>Add to Cart</span>
                     </button>
                     <Link
-                      href={`/products?category=${encodeURIComponent(product.category)}`}
+                      href={`/products/${product.id}`}
                       className="bg-white/90 p-3 text-bg-primary transition-all hover:bg-white"
                     >
                       <Eye size={18} />

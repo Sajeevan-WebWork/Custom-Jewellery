@@ -1,8 +1,9 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Filter, Search, ShoppingBag } from "lucide-react";
+import { Eye, Filter, Search, ShoppingBag } from "lucide-react";
 import { useStorefrontCart } from "@/context/StorefrontCartContext";
 import { formatCurrency } from "@/lib/dashboard";
 import { createClient } from "@/lib/supabase";
@@ -325,28 +326,49 @@ export function StorefrontProductsPage({
                       className="group"
                     >
                       <div className="relative mb-6 aspect-[4/5] overflow-hidden bg-white shadow-sm">
-                        <img
-                          src={product.image}
-                          alt={product.name}
-                          className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
-                        />
+                        <Link href={`/products/${product.id}`}>
+                          <img
+                            src={product.image}
+                            alt={product.name}
+                            className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
+                          />
+                        </Link>
                         <div className="absolute inset-0 transition-all duration-500 group-hover:bg-black/5" />
-                        <button
-                          onClick={() => addToCart(product)}
-                          className="absolute bottom-6 left-4 right-4 flex items-center justify-center space-x-2 bg-bg-primary px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-white transition-all duration-500 hover:bg-accent-gold hover:text-bg-primary md:bottom-4 md:translate-y-4 md:opacity-0 group-hover:translate-y-0 group-hover:opacity-100"
-                        >
-                          <ShoppingBag size={14} />
-                          <span>Add to Cart</span>
-                        </button>
+                        <div className="absolute bottom-6 left-4 right-4 flex flex-col gap-2 md:bottom-4 md:translate-y-4 md:opacity-0 md:transition-all md:duration-500 group-hover:translate-y-0 group-hover:opacity-100">
+                          <button
+                            onClick={() => addToCart(product)}
+                            className="flex flex-1 items-center justify-center space-x-2 bg-bg-primary px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-white transition-all duration-500 hover:bg-accent-gold hover:text-bg-primary"
+                          >
+                            <ShoppingBag size={14} />
+                            <span>Add to Cart</span>
+                          </button>
+
+                          <Link
+                            href={`/products/${product.id}`}
+                            onClick={() => addToCart(product)}
+                            className="flex flex-1 items-center justify-center space-x-2 bg-bg-primary px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-white transition-all duration-500 hover:bg-accent-gold hover:text-bg-primary"
+                          >
+                            <ShoppingBag size={14} />
+                            <span className="text-base font-normal">View Detail</span>
+                          </Link>
+                          {/* <Link
+                            href={`/products/${product.id}`}
+                            className="flex items-center justify-center bg-white/90 px-4 text-bg-primary transition-all hover:bg-white"
+                          >
+                            <Eye size={18} />
+                          </Link> */}
+                        </div>
                       </div>
 
                       <div className="text-center">
                         <span className="mb-2 block text-[10px] uppercase tracking-[0.2em] text-accent-bronze">
                           {product.category}
                         </span>
-                        <h3 className="mb-2 text-lg tracking-wide text-text-dark transition-colors group-hover:text-accent-gold">
-                          {product.name}
-                        </h3>
+                        <Link href={`/products/${product.id}`}>
+                          <h3 className="mb-2 text-lg tracking-wide text-text-dark transition-colors group-hover:text-accent-gold">
+                            {product.name}
+                          </h3>
+                        </Link>
                         <p className="font-medium text-accent-gold">
                           {formatCurrency(product.price)}
                         </p>
