@@ -12,6 +12,7 @@ import {
   Input,
   PageHeader,
   Panel,
+  Select,
   Textarea,
 } from "@/components/dashboard/ui";
 
@@ -38,12 +39,14 @@ export default function DashboardCategoriesPage() {
   const [productLinks, setProductLinks] = useState<ProductLink[]>([]);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
+  const [imageUrlInput, setImageUrlInput] = useState("");
   const [imageUpload, setImageUpload] = useState<UploadState | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
   const [editDescription, setEditDescription] = useState("");
+  const [editImageUrlInput, setEditImageUrlInput] = useState("");
   const [editImageUrl, setEditImageUrl] = useState<string | null>(null);
   const [editImageUpload, setEditImageUpload] = useState<UploadState | null>(
     null,
@@ -159,6 +162,8 @@ export default function DashboardCategoriesPage() {
 
       if (imageUpload) {
         imageUrl = await uploadImage(imageUpload.file, name);
+      } else if (imageUrlInput.trim()) {
+        imageUrl = imageUrlInput.trim();
       }
 
       const { error: createError } = await supabase.from("categories").insert({
@@ -176,6 +181,7 @@ export default function DashboardCategoriesPage() {
 
       setName("");
       setDescription("");
+      setImageUrlInput("");
       clearImageUpload();
       setSaving(false);
       await loadCategories();
@@ -191,6 +197,7 @@ export default function DashboardCategoriesPage() {
     setEditingId(category.id);
     setEditName(category.name);
     setEditDescription(category.description || "");
+    setEditImageUrlInput(category.image_url || "");
     setEditImageUrl(category.image_url);
   };
 
@@ -200,6 +207,8 @@ export default function DashboardCategoriesPage() {
 
       if (editImageUpload) {
         finalImageUrl = await uploadImage(editImageUpload.file, editName);
+      } else {
+        finalImageUrl = editImageUrlInput.trim() || null;
       }
 
       const { error: updateError } = await supabase
@@ -277,41 +286,57 @@ export default function DashboardCategoriesPage() {
             </Field>
           </div>
 
-          <div className="grid gap-5 md:grid-cols-[1fr_auto_auto]">
-            <div>
-              <Field label="Image">
-                <div className="flex items-center gap-2">
-                  <input
-                    type="file"
-                    id="category-image-input"
-                    accept="image/*"
-                    onChange={onImageChange}
-                    className="hidden"
-                  />
+          <div className="grid gap-5 md:grid-cols-2">
+            <Field label="Thumbnail URL">
+              <Input
+                type="url"
+                value={imageUrlInput}
+                onChange={(event) => setImageUrlInput(event.target.value)}
+                placeholder="https://example.com/category-thumbnail.jpg"
+              />
+            </Field>
+            <Field label="Thumbnail Upload">
+              <div className="flex items-center gap-2">
+                <input
+                  type="file"
+                  id="category-image-input"
+                  accept="image/*"
+                  onChange={onImageChange}
+                  className="hidden"
+                />
+                <Button
+                  type="button"
+                  variant="secondary"
+                  className="gap-2 flex-1"
+                  onClick={() =>
+                    document.getElementById("category-image-input")?.click()
+                  }
+                  disabled={imageUpload ? true : false}
+                >
+                  <ImageIcon className="h-4 w-4" />
+                  {imageUpload ? "Uploading…" : "Choose Image"}
+                </Button>
+                {imagePreview && (
                   <Button
                     type="button"
-                    variant="secondary"
-                    className="gap-2 flex-1"
-                    onClick={() =>
-                      document.getElementById("category-image-input")?.click()
-                    }
-                    disabled={imageUpload ? true : false}
+                    variant="ghost"
+                    className="text-rose-300"
+                    onClick={clearImageUpload}
                   >
-                    <ImageIcon className="h-4 w-4" />
-                    {imageUpload ? "Uploading…" : "Choose Image"}
+                    <Trash2 className="h-4 w-4" />
                   </Button>
-                  {imagePreview && (
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      className="text-rose-300"
-                      onClick={clearImageUpload}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  )}
-                </div>
-              </Field>
+                )}
+              </div>
+            </Field>
+          </div>
+
+          <div className="grid gap-5 md:grid-cols-[1fr_auto]">
+            <div>
+              <p className="text-sm text-[var(--text-dim)]">
+                Thumbnail priority: uploaded image, then thumbnail URL. If both
+                are empty, the storefront uses a linked product image as the
+                category thumbnail automatically.
+              </p>
             </div>
             <div className="flex items-end">
               <Button
@@ -369,10 +394,23 @@ export default function DashboardCategoriesPage() {
                     <td className="px-6 py-4">
                       {editingId === category.id ? (
                         <div className="space-y-2">
+                          <Input
+                            type="url"
+                            value={editImageUrlInput}
+                            onChange={(event) =>
+                              setEditImageUrlInput(event.target.value)
+                            }
+                            placeholder="https://example.com/category-thumbnail.jpg"
+                          />
                           {editImagePreview || editImageUrl ? (
                             <div className="relative">
                               <img
-                                src={editImagePreview || editImageUrl || ""}
+                                src={
+                                  editImagePreview ||
+                                  editImageUrlInput ||
+                                  editImageUrl ||
+                                  ""
+                                }
                                 alt="Category"
                                 className="h-20 w-20 object-cover rounded"
                               />
@@ -407,6 +445,7 @@ export default function DashboardCategoriesPage() {
                               variant="ghost"
                               className="text-rose-300 w-full"
                               onClick={() => {
+                                setEditImageUrlInput("");
                                 setEditImageUrl(null);
                                 clearEditImageUpload();
                               }}
@@ -480,6 +519,7 @@ export default function DashboardCategoriesPage() {
                                 setEditingId(null);
                                 clearEditImageUpload();
                                 setEditImageUrl(null);
+                                setEditImageUrlInput("");
                               }}
                             >
                               Cancel

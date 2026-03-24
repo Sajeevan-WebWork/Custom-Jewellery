@@ -11,6 +11,10 @@ const nextConfig = {
         protocol: "https",
         hostname: "dotgmevvwnthtwvgwuwv.supabase.co",
       },
+      {
+        protocol: "https",
+        hostname: "img.freepik.com",
+      }
     ],
   },
 };

@@ -59,15 +59,15 @@ export function DashboardShell({ children }: { children: ReactNode }) {
 
   const sidebar = (
     <aside className="flex h-full w-64 flex-col border-r border-[var(--border)] bg-[var(--surface)] md:w-56 sm:w-full">
-      <div className="flex items-center gap-3 border-b border-[var(--border)] px-6 py-6">
+      <div className="flex flex-col items-center gap-3 border-b border-[var(--border)] px-6 py-6">
         <div className="rounded-2xl bg-[var(--surface-2)] p-3">
           <Gem className="h-6 w-6 text-[var(--gold)]" />
         </div>
         <div>
-          <p className="font-[family-name:var(--font-display)] text-3xl text-[var(--gold)]">
-            Jewellery Studio
+          <p className="font-[family-name:var(--font-display)] text-2xl font-semibold text-[var(--gold)]">
+            RD HandMade Bangles
           </p>
-          <p className="text-xs uppercase tracking-[0.24em] text-[var(--text-muted)]">
+          <p className="text-xs uppercase mt-2 text-[var(--text-muted)]">
             Admin Console
           </p>
         </div>
@@ -127,7 +127,7 @@ export function DashboardShell({ children }: { children: ReactNode }) {
       ) : null}
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <div className="flex items-center justify-between border-b border-[var(--border)] bg-[rgba(9,9,8,0.75)] px-6 py-4 backdrop-blur lg:hidden">
+        <div className="flex items-center flex-col justify-between border-b border-[var(--border)] bg-[rgba(9,9,8,0.75)] px-6 py-4 backdrop-blur lg:hidden">
           <button
             className="rounded-full border border-[var(--border)] bg-[var(--surface)] p-2"
             onClick={() => setOpen(true)}
@@ -136,7 +136,7 @@ export function DashboardShell({ children }: { children: ReactNode }) {
             <Menu className="h-5 w-5 text-[var(--text)]" />
           </button>
           <p className="font-[family-name:var(--font-display)] text-3xl text-[var(--gold)]">
-            Jewellery Studio
+            RD HandMade Bangles
           </p>
           <button
             className="rounded-full border border-transparent p-2 text-[var(--text-dim)]"

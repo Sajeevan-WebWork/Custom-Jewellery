@@ -44,6 +44,7 @@ export function ProductForm({ productId }: { productId?: string }) {
   const [categories, setCategories] = useState<Category[]>([]);
   const [form, setForm] = useState(initialState);
   const [existingImages, setExistingImages] = useState<string[]>([]);
+  const [imageUrlInput, setImageUrlInput] = useState("");
   const [uploads, setUploads] = useState<UploadState[]>([]);
   const [loading, setLoading] = useState(Boolean(productId));
   const [saving, setSaving] = useState(false);
@@ -104,8 +105,43 @@ export function ProductForm({ productId }: { productId?: string }) {
     const nextErrors: Record<string, string> = {};
     if (!form.name.trim()) nextErrors.name = "Product name is required.";
     if (!form.price || Number(form.price) <= 0) nextErrors.price = "Enter a valid price.";
+    if (imageUrlInput.trim()) {
+      try {
+        new URL(imageUrlInput.trim());
+      } catch {
+        nextErrors.image_urls = "Enter a valid image URL.";
+      }
+    }
     setFieldErrors(nextErrors);
     return Object.keys(nextErrors).length === 0;
+  };
+
+  const addImageUrl = () => {
+    const trimmedUrl = imageUrlInput.trim();
+    if (!trimmedUrl) return;
+
+    try {
+      new URL(trimmedUrl);
+    } catch {
+      setFieldErrors((current) => ({
+        ...current,
+        image_urls: "Enter a valid image URL.",
+      }));
+      return;
+    }
+
+    if (existingImages.includes(trimmedUrl)) {
+      setImageUrlInput("");
+      return;
+    }
+
+    setExistingImages((current) => [...current, trimmedUrl]);
+    setImageUrlInput("");
+    setFieldErrors((current) => {
+      const next = { ...current };
+      delete next.image_urls;
+      return next;
+    });
   };
 
   const uploadFile = async (file: File, index: number) => {
@@ -251,6 +287,25 @@ export function ProductForm({ productId }: { productId?: string }) {
               <input type="file" multiple accept="image/*" className="hidden" onChange={onFileChange} />
             </label>
           </div>
+
+          <Field label="Image URL" error={fieldErrors.image_urls}>
+            <div className="flex flex-col gap-3 md:flex-row">
+              <Input
+                type="url"
+                value={imageUrlInput}
+                onChange={(event) => setImageUrlInput(event.target.value)}
+                placeholder="https://example.com/product-image.jpg"
+              />
+              <Button
+                type="button"
+                variant="secondary"
+                className="md:shrink-0"
+                onClick={addImageUrl}
+              >
+                Add URL
+              </Button>
+            </div>
+          </Field>
 
           {(existingImages.length || uploads.length) > 0 ? (
             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
