@@ -1,30 +1,159 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Filter, Search, ShoppingBag } from "lucide-react";
 import { useStorefrontCart } from "@/context/StorefrontCartContext";
-import { allProducts } from "@/lib/storefront-data";
+import { formatCurrency } from "@/lib/dashboard";
+import { createClient } from "@/lib/supabase";
 
-const categories = ["All", "Rings", "Necklaces", "Earrings", "Bracelets"];
-const metals = ["All", "Gold", "Silver", "Platinum", "Rose Gold"];
+const defaultCategories = ["All"];
+const fallbackImage = "/images/hero-background.jpg";
+
+type Category = {
+  id: string;
+  name: string;
+};
+
+type StorefrontProduct = {
+  id: string;
+  name: string;
+  price: number;
+  category: string;
+  image: string;
+  metal: string;
+  created_at: string;
+};
+
+type ProductRow = {
+  id: string;
+  name: string;
+  price: number;
+  material: string | null;
+  image_urls: string[] | null;
+  created_at: string;
+  stock: boolean | null;
+  categories: { name: string } | null;
+};
+
+type RawProductRow = Omit<ProductRow, "categories"> & {
+  categories: { name: string } | { name: string }[] | null;
+};
 
 export function StorefrontProductsPage({
   initialCategory = "All",
 }: {
   initialCategory?: string;
 }) {
+  const supabase = useMemo(() => createClient(), []);
   const { addToCart } = useStorefrontCart();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState(
     initialCategory || "All",
   );
+  const [categories, setCategories] = useState<string[]>(defaultCategories);
+  const [products, setProducts] = useState<StorefrontProduct[]>([]);
   const [selectedMetal, setSelectedMetal] = useState("All");
   const [sortBy, setSortBy] = useState("newest");
   const [isFilterOpen, setIsFilterOpen] = useState(true);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await fetch("/api/categories");
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(
+            data.details || data.error || "Failed to fetch categories",
+          );
+        }
+
+        const backendCategories = Array.isArray(data)
+          ? data
+              .map((category: Category) => category.name?.trim())
+              .filter((name): name is string => Boolean(name))
+          : [];
+
+        setCategories(["All", ...new Set(backendCategories)]);
+      } catch (error) {
+        console.error("Error fetching categories:", error);
+        setCategories(defaultCategories);
+      }
+    };
+
+    fetchCategories();
+  }, []);
+
+  useEffect(() => {
+    if (!categories.includes(selectedCategory)) {
+      setSelectedCategory("All");
+    }
+  }, [categories, selectedCategory]);
+
+  useEffect(() => {
+    const loadProducts = async () => {
+      try {
+        setLoading(true);
+
+        const { data, error: fetchError } = await supabase
+          .from("products")
+          .select(
+            "id, name, price, material, image_urls, created_at, stock, categories(name)",
+          )
+          .eq("stock", true)
+          .order("created_at", { ascending: false });
+
+        if (fetchError) {
+          throw fetchError;
+        }
+
+        const normalized = ((data ?? []) as unknown as RawProductRow[]).map(
+          (product) => {
+            const categoryData = Array.isArray(product.categories)
+              ? (product.categories[0] ?? null)
+              : product.categories;
+
+            return {
+              id: product.id,
+              name: product.name,
+              price: Number(product.price ?? 0),
+              category: categoryData?.name || "Unassigned",
+              image: product.image_urls?.[0] || fallbackImage,
+              metal: product.material?.trim() || "Other",
+              created_at: product.created_at,
+            };
+          },
+        );
+
+        setProducts(normalized);
+        setError(null);
+      } catch (err) {
+        const message =
+          err instanceof Error ? err.message : "Failed to load products";
+        console.error("Error fetching products:", message);
+        setProducts([]);
+        setError(message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadProducts();
+  }, [supabase]);
+
+  const metals = useMemo(() => {
+    const backendMetals = products
+      .map((product) => product.metal.trim())
+      .filter(Boolean);
+
+    return ["All", ...new Set(backendMetals)];
+  }, [products]);
 
   const filteredProducts = useMemo(() => {
-    const result = [...allProducts].filter((product) => {
+    const result = [...products].filter((product) => {
       const matchesSearch = product.name
         .toLowerCase()
         .includes(searchTerm.toLowerCase());
@@ -35,11 +164,17 @@ export function StorefrontProductsPage({
       return matchesSearch && matchesCategory && matchesMetal;
     });
 
+    if (sortBy === "newest") {
+      result.sort(
+        (a, b) =>
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+      );
+    }
     if (sortBy === "price-low") result.sort((a, b) => a.price - b.price);
     if (sortBy === "price-high") result.sort((a, b) => b.price - a.price);
 
     return result;
-  }, [searchTerm, selectedCategory, selectedMetal, sortBy]);
+  }, [products, searchTerm, selectedCategory, selectedMetal, sortBy]);
 
   return (
     <div className="min-h-screen bg-bg-content pt-16">
@@ -110,7 +245,7 @@ export function StorefrontProductsPage({
               </div>
             </div>
 
-            <div>
+            <div hidden>
               <h4 className="mb-6 border-b border-text-dark/10 pb-2 text-xs font-bold uppercase tracking-widest text-text-dark">
                 Metal Type
               </h4>
@@ -168,51 +303,61 @@ export function StorefrontProductsPage({
               </div>
             </div>
 
-            <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-3">
-              <AnimatePresence mode="popLayout">
-                {filteredProducts.map((product) => (
-                  <motion.div
-                    key={product.id}
-                    layout
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.9 }}
-                    transition={{ duration: 0.4 }}
-                    className="group"
-                  >
-                    <div className="relative mb-6 aspect-[4/5] overflow-hidden bg-white shadow-sm">
-                      <img
-                        src={product.image}
-                        alt={product.name}
-                        className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
-                      />
-                      <div className="absolute inset-0 transition-all duration-500 group-hover:bg-black/5" />
-                      <button
-                        onClick={() => addToCart(product)}
-                        className="absolute bottom-6 left-4 right-4 flex items-center justify-center space-x-2 bg-bg-primary px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-white transition-all duration-500 hover:bg-accent-gold hover:text-bg-primary md:bottom-4 md:translate-y-4 md:opacity-0 group-hover:translate-y-0 group-hover:opacity-100"
-                      >
-                        <ShoppingBag size={14} />
-                        <span>Add to Cart</span>
-                      </button>
-                    </div>
+            {error ? (
+              <div className="py-24 text-center">
+                <h3 className="text-2xl italic text-red-500">{error}</h3>
+              </div>
+            ) : loading ? (
+              <div className="flex justify-center py-24">
+                <div className="h-8 w-8 animate-spin rounded-full border-4 border-accent-gold border-t-transparent" />
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-3">
+                <AnimatePresence mode="popLayout">
+                  {filteredProducts.map((product) => (
+                    <motion.div
+                      key={product.id}
+                      layout
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.9 }}
+                      transition={{ duration: 0.4 }}
+                      className="group"
+                    >
+                      <div className="relative mb-6 aspect-[4/5] overflow-hidden bg-white shadow-sm">
+                        <img
+                          src={product.image}
+                          alt={product.name}
+                          className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
+                        />
+                        <div className="absolute inset-0 transition-all duration-500 group-hover:bg-black/5" />
+                        <button
+                          onClick={() => addToCart(product)}
+                          className="absolute bottom-6 left-4 right-4 flex items-center justify-center space-x-2 bg-bg-primary px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-white transition-all duration-500 hover:bg-accent-gold hover:text-bg-primary md:bottom-4 md:translate-y-4 md:opacity-0 group-hover:translate-y-0 group-hover:opacity-100"
+                        >
+                          <ShoppingBag size={14} />
+                          <span>Add to Cart</span>
+                        </button>
+                      </div>
 
-                    <div className="text-center">
-                      <span className="mb-2 block text-[10px] uppercase tracking-[0.2em] text-accent-bronze">
-                        {product.category}
-                      </span>
-                      <h3 className="mb-2 text-lg tracking-wide text-text-dark transition-colors group-hover:text-accent-gold">
-                        {product.name}
-                      </h3>
-                      <p className="font-medium text-accent-gold">
-                        ${product.price.toLocaleString()}
-                      </p>
-                    </div>
-                  </motion.div>
-                ))}
-              </AnimatePresence>
-            </div>
+                      <div className="text-center">
+                        <span className="mb-2 block text-[10px] uppercase tracking-[0.2em] text-accent-bronze">
+                          {product.category}
+                        </span>
+                        <h3 className="mb-2 text-lg tracking-wide text-text-dark transition-colors group-hover:text-accent-gold">
+                          {product.name}
+                        </h3>
+                        <p className="font-medium text-accent-gold">
+                          {formatCurrency(product.price)}
+                        </p>
+                      </div>
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+              </div>
+            )}
 
-            {filteredProducts.length === 0 ? (
+            {!loading && !error && filteredProducts.length === 0 ? (
               <div className="py-24 text-center">
                 <h3 className="text-2xl italic text-text-dark/40">
                   No pieces found matching your criteria.
